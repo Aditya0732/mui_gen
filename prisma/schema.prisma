@@ -1,0 +1,172 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Component {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  type        ComponentType
+  code        String   @db.Text
+  propsSchema Json
+  examples    String?  @db.Text
+  description String?  @db.Text
+  tags        String[]
+  metadata    Json?
+  version     String   @default("1.0.0")
+  
+  // Relationships
+  ownerId     String?
+  owner       User?    @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  
+  // Reverse relations
+  generationLogs      GenerationLog[]
+  accessibilityReports AccessibilityReport[]
+  
+  // Audit fields
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Analytics
+  usageCount  Int      @default(0)
+  lastUsedAt  DateTime?
+  
+  @@map("components")
+}
+
+model User {
+  id         String      @id @default(uuid())
+  email      String      @unique
+  name       String?
+  avatar     String?
+  role       UserRole    @default(USER)
+  
+  // Relationships
+  components Component[]
+  sessions   Session[]
+  
+  // Audit fields
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  lastLoginAt DateTime?
+  
+  @@map("users")
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("sessions")
+}
+
+model GenerationLog {
+  id             String            @id @default(uuid())
+  prompt         String            @db.Text
+  componentType  String
+  requirements   String?           @db.Text
+  options        String?           @db.Text
+  status         GenerationStatus
+  result         String?           @db.Text
+  error          String?           @db.Text
+  retryCount     Int               @default(0)
+  metadata       String?           @db.Text
+  
+  // Timing fields
+  createdAt      DateTime          @default(now())
+  startedAt      DateTime?
+  completedAt    DateTime?
+  
+  // Optional component relationship
+  componentId    String?
+  component      Component?        @relation(fields: [componentId], references: [id], onDelete: SetNull)
+  
+  // Optional user relationship
+  userId         String?
+  
+  @@map("generation_logs")
+}
+
+model AccessibilityReport {
+  id          String    @id @default(uuid())
+  componentId String
+  component   Component @relation(fields: [componentId], references: [id], onDelete: Cascade)
+  
+  // axe-core results
+  violations  Json      // Critical issues
+  incomplete  Json      // Needs review
+  passes      Json      // Passed tests
+  
+  score       Float?    // Overall accessibility score
+  
+  createdAt   DateTime  @default(now())
+  
+  @@map("accessibility_reports")
+}
+
+enum ComponentType {
+  MUITable
+  MUIButton
+  MUIForm
+  MUIDialog
+  MUICard
+  MUITabs
+  MUIList
+  MUIChip
+  MUIAvatar
+  MUIBadge
+  MUITooltip
+  MUIMenu
+  MUIDrawer
+  MUIAppBar
+  MUIBottomNavigation
+  MUIBreadcrumbs
+  MUIFab
+  MUISpeedDial
+  MUIStepper
+  MUITimeline
+  MUIAlert
+  MUISnackbar
+  MUIBackdrop
+  MUISkeleton
+  MUIProgress
+  MUIRating
+  MUISlider
+  MUISwitch
+  MUIToggleButton
+  MUIAutocomplete
+  MUIDatePicker
+  MUITimePicker
+  Custom
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  DEVELOPER
+}
+
+enum GenerationStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+  PARTIAL
+  TIMEOUT
+  RATE_LIMITED
+}
