@@ -23,7 +23,9 @@ import { useTheme } from '@/components/ThemeRegistry';
 
 export function AppHeader() {
   const { mode, setMode, actualMode } = useTheme();
-  const [themeMenuAnchor, setThemeMenuAnchor] = useState<null | HTMLElement>(null);
+  const [themeMenuAnchor, setThemeMenuAnchor] = useState<null | HTMLElement>(
+    null
+  );
 
   const handleThemeMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setThemeMenuAnchor(event.currentTarget);
@@ -52,10 +54,10 @@ export function AppHeader() {
   };
 
   return (
-    <AppBar 
-      position="sticky" 
+    <AppBar
+      position='sticky'
       elevation={1}
-      sx={{ 
+      sx={{
         backgroundColor: 'background.paper',
         color: 'text.primary',
         borderBottom: 1,
@@ -63,10 +65,10 @@ export function AppHeader() {
       }}
     >
       <Toolbar>
-        <Typography 
-          variant="h6" 
-          component="div" 
-          sx={{ 
+        <Typography
+          variant='h6'
+          component='div'
+          sx={{
             flexGrow: 1,
             fontWeight: 600,
             background: 'linear-gradient(45deg, #1976d2 30%, #dc004e 90%)',
@@ -79,31 +81,11 @@ export function AppHeader() {
         </Typography>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Button
-            color="inherit"
-            startIcon={<DocsIcon />}
-            href="/docs"
-            sx={{ display: { xs: 'none', sm: 'flex' } }}
-          >
-            Documentation
-          </Button>
-
-          <Tooltip title="View on GitHub">
-            <IconButton
-              color="inherit"
-              href="https://github.com/your-repo/mui-gen"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <GitHubIcon />
-            </IconButton>
-          </Tooltip>
-
           <Tooltip title={`Current theme: ${mode}`}>
             <IconButton
-              color="inherit"
+              color='inherit'
               onClick={handleThemeMenuOpen}
-              aria-label="Toggle theme"
+              aria-label='Toggle theme'
             >
               {getThemeIcon()}
             </IconButton>
@@ -116,21 +98,21 @@ export function AppHeader() {
             transformOrigin={{ horizontal: 'right', vertical: 'top' }}
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
           >
-            <MenuItem 
+            <MenuItem
               onClick={() => handleThemeChange('light')}
               selected={mode === 'light'}
             >
               <LightIcon sx={{ mr: 1 }} />
               Light
             </MenuItem>
-            <MenuItem 
+            <MenuItem
               onClick={() => handleThemeChange('dark')}
               selected={mode === 'dark'}
             >
               <DarkIcon sx={{ mr: 1 }} />
               Dark
             </MenuItem>
-            <MenuItem 
+            <MenuItem
               onClick={() => handleThemeChange('system')}
               selected={mode === 'system'}
             >

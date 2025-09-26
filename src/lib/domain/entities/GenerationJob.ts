@@ -1,6 +1,12 @@
-import { GenerationRequest, GenerationResponse, GenerationStatus } from '@/types';
+import {
+  GenerationRequest,
+  GenerationResponse,
+  GenerationStatus,
+} from '@/types';
 
 export class GenerationJob {
+  public componentId?: string;
+
   constructor(
     public readonly id: string,
     public readonly request: GenerationRequest,
@@ -78,14 +84,18 @@ export class GenerationJob {
   }
 
   public canRetry(): boolean {
-    return this.retryCount < this.maxRetries && 
-           (this.status === GenerationStatus.FAILED || 
-            this.status === GenerationStatus.TIMEOUT);
+    return (
+      this.retryCount < this.maxRetries &&
+      (this.status === GenerationStatus.FAILED ||
+        this.status === GenerationStatus.TIMEOUT)
+    );
   }
 
   public retry(): void {
     if (!this.canRetry()) {
-      throw new Error('Cannot retry job: max retries reached or job not in retryable state');
+      throw new Error(
+        'Cannot retry job: max retries reached or job not in retryable state'
+      );
     }
     this.retryCount++;
     this.status = GenerationStatus.PENDING;
@@ -106,7 +116,7 @@ export class GenerationJob {
       GenerationStatus.FAILED,
       GenerationStatus.PARTIAL,
       GenerationStatus.TIMEOUT,
-      GenerationStatus.RATE_LIMITED
+      GenerationStatus.RATE_LIMITED,
     ].includes(this.status);
   }
 
@@ -115,7 +125,9 @@ export class GenerationJob {
   }
 
   public hasPartialResult(): boolean {
-    return this.status === GenerationStatus.PARTIAL && this.result !== undefined;
+    return (
+      this.status === GenerationStatus.PARTIAL && this.result !== undefined
+    );
   }
 
   public getProgressPercentage(): number {
@@ -153,11 +165,13 @@ export class GenerationJob {
       request: this.request,
       status: this.status,
       result: this.result,
-      error: this.error ? {
-        name: this.error.name,
-        message: this.error.message,
-        stack: this.error.stack,
-      } : undefined,
+      error: this.error
+        ? {
+            name: this.error.name,
+            message: this.error.message,
+            stack: this.error.stack,
+          }
+        : undefined,
       createdAt: this.createdAt.toISOString(),
       startedAt: this.startedAt?.toISOString(),
       completedAt: this.completedAt?.toISOString(),

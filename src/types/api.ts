@@ -253,6 +253,27 @@ export namespace API {
 
   export const LibraryListResponse = PaginatedResponse(LibraryComponent);
   export type LibraryListResponse = z.infer<typeof LibraryListResponse>;
+
+  // Individual Component Response
+  export const ComponentResponse = z.object({
+    success: z.literal(true),
+    data: z.object({
+      component: z.object({
+        id: z.string(),
+        name: z.string(),
+        type: z.string(),
+        code: z.string(),
+        propsSchema: z.any(),
+        description: z.string().optional(),
+        examples: z.array(z.string()).optional(),
+        createdAt: z.string(),
+        updatedAt: z.string(),
+      }),
+    }),
+    timestamp: z.string(),
+  });
+
+  export type ComponentResponse = z.infer<typeof ComponentResponse>;
 }
 
 // HTTP Status Codes

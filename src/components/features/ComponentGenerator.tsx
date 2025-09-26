@@ -29,9 +29,10 @@ import {
 } from '@mui/icons-material';
 
 import { CodeEditor } from '@/components/ui/CodeEditor';
-import { ComponentPreview } from '@/components/ui/ComponentPreview';
+// import { ComponentPreview } from '@/components/ui/ComponentPreview';
 import { ComponentType } from '@/types';
 import { useComponentGeneration } from '@/hooks/useComponentGeneration';
+import ComponentPreview from '../ui/ComponentPreview';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -42,7 +43,7 @@ interface TabPanelProps {
 function TabPanel({ children, value, index, ...other }: TabPanelProps) {
   return (
     <div
-      role="tabpanel"
+      role='tabpanel'
       hidden={value !== index}
       id={`simple-tabpanel-${index}`}
       aria-labelledby={`simple-tab-${index}`}
@@ -88,7 +89,9 @@ export function ComponentGenerator() {
   const handleExport = useCallback(() => {
     if (!generatedComponent) return;
 
-    const blob = new Blob([generatedComponent.code], { type: 'text/typescript' });
+    const blob = new Blob([generatedComponent.code], {
+      type: 'text/typescript',
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -114,7 +117,7 @@ export function ComponentGenerator() {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" component="h2" gutterBottom>
+      <Typography variant='h4' component='h2' gutterBottom>
         Generate Component
       </Typography>
 
@@ -122,7 +125,7 @@ export function ComponentGenerator() {
         {/* Input Section */}
         <Grid item xs={12} lg={4}>
           <Paper sx={{ p: 3, height: 'fit-content' }}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant='h6' gutterBottom>
               Describe Your Component
             </Typography>
 
@@ -131,9 +134,9 @@ export function ComponentGenerator() {
               multiline
               rows={4}
               value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Describe the component you want to generate..."
-              variant="outlined"
+              onChange={e => setPrompt(e.target.value)}
+              placeholder='Describe the component you want to generate...'
+              variant='outlined'
               sx={{ mb: 2 }}
               error={!!error}
             />
@@ -142,13 +145,13 @@ export function ComponentGenerator() {
               <InputLabel>Preferred Component Type (Optional)</InputLabel>
               <Select
                 value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value as ComponentType)}
-                label="Preferred Component Type (Optional)"
+                onChange={e => setSelectedType(e.target.value as ComponentType)}
+                label='Preferred Component Type (Optional)'
               >
-                <MenuItem value="">
+                <MenuItem value=''>
                   <em>Auto-detect</em>
                 </MenuItem>
-                {componentTypes.map((type) => (
+                {componentTypes.map(type => (
                   <MenuItem key={type.value} value={type.value}>
                     {type.label}
                   </MenuItem>
@@ -157,49 +160,61 @@ export function ComponentGenerator() {
             </FormControl>
 
             <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" gutterBottom>
+              <Typography variant='subtitle2' gutterBottom>
                 Options
               </Typography>
               <FormControlLabel
                 control={
                   <Switch
                     checked={options.typescript}
-                    onChange={(e) => setOptions(prev => ({ ...prev, typescript: e.target.checked }))}
+                    onChange={e =>
+                      setOptions(prev => ({
+                        ...prev,
+                        typescript: e.target.checked,
+                      }))
+                    }
                   />
                 }
-                label="TypeScript"
+                label='TypeScript'
               />
               <FormControlLabel
                 control={
                   <Switch
                     checked={options.accessibility}
-                    onChange={(e) => setOptions(prev => ({ ...prev, accessibility: e.target.checked }))}
+                    onChange={e =>
+                      setOptions(prev => ({
+                        ...prev,
+                        accessibility: e.target.checked,
+                      }))
+                    }
                   />
                 }
-                label="Accessibility Features"
+                label='Accessibility Features'
               />
             </Box>
 
             <Button
               fullWidth
-              variant="contained"
-              size="large"
+              variant='contained'
+              size='large'
               onClick={handleGenerate}
               disabled={!prompt.trim() || isGenerating}
-              startIcon={isGenerating ? <CircularProgress size={20} /> : <GenerateIcon />}
+              startIcon={
+                isGenerating ? <CircularProgress size={20} /> : <GenerateIcon />
+              }
               sx={{ mb: 2 }}
             >
               {isGenerating ? 'Generating...' : 'Generate Component'}
             </Button>
 
             {error && (
-              <Alert severity="error" onClose={clearError} sx={{ mb: 2 }}>
+              <Alert severity='error' onClose={clearError} sx={{ mb: 2 }}>
                 {error}
               </Alert>
             )}
 
             <Box>
-              <Typography variant="subtitle2" gutterBottom>
+              <Typography variant='subtitle2' gutterBottom>
                 Example Prompts
               </Typography>
               {examplePrompts.map((example, index) => (
@@ -207,14 +222,14 @@ export function ComponentGenerator() {
                   key={index}
                   label={example}
                   onClick={() => setPrompt(example)}
-                  sx={{ 
-                    mb: 1, 
-                    mr: 1, 
+                  sx={{
+                    mb: 1,
+                    mr: 1,
                     cursor: 'pointer',
                     fontSize: '0.75rem',
                   }}
-                  size="small"
-                  variant="outlined"
+                  size='small'
+                  variant='outlined'
                 />
               ))}
             </Box>
@@ -224,40 +239,39 @@ export function ComponentGenerator() {
         {/* Output Section */}
         <Grid item xs={12} lg={8}>
           {generatedComponent ? (
-            <Paper sx={{ height: '600px', display: 'flex', flexDirection: 'column' }}>
+            <Paper
+              sx={{ height: '600px', display: 'flex', flexDirection: 'column' }}
+            >
               <Box sx={{ borderBottom: 1, borderColor: 'divider', p: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                  <Typography variant="h6">
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    mb: 2,
+                  }}
+                >
+                  <Typography variant='h6'>
                     {generatedComponent.name}
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 1 }}>
                     <Button
-                      size="small"
+                      size='small'
                       startIcon={<DownloadIcon />}
                       onClick={handleExport}
+                      variant='outlined'
                     >
                       Export
-                    </Button>
-                    <Button
-                      size="small"
-                      startIcon={<SaveIcon />}
-                      variant="outlined"
-                    >
-                      Save
                     </Button>
                   </Box>
                 </Box>
 
                 <Tabs value={activeTab} onChange={handleTabChange}>
-                  <Tab 
-                    icon={<CodeIcon />} 
-                    label="Code" 
-                    iconPosition="start"
-                  />
-                  <Tab 
-                    icon={<PreviewIcon />} 
-                    label="Preview" 
-                    iconPosition="start"
+                  <Tab icon={<CodeIcon />} label='Code' iconPosition='start' />
+                  <Tab
+                    icon={<PreviewIcon />}
+                    label='Preview'
+                    iconPosition='start'
                   />
                 </Tabs>
               </Box>
@@ -266,10 +280,10 @@ export function ComponentGenerator() {
                 <TabPanel value={activeTab} index={0}>
                   <CodeEditor
                     value={generatedComponent.code}
-                    language="typescript"
+                    language='typescript'
                     theme={options.theme}
                     readOnly
-                    height="500px"
+                    height='500px'
                   />
                 </TabPanel>
 
@@ -277,28 +291,29 @@ export function ComponentGenerator() {
                   <ComponentPreview
                     code={generatedComponent.code}
                     theme={options.theme}
-                    height="500px"
+                    height='500px'
                   />
                 </TabPanel>
               </Box>
             </Paper>
           ) : (
-            <Paper 
-              sx={{ 
-                height: '600px', 
-                display: 'flex', 
-                alignItems: 'center', 
+            <Paper
+              sx={{
+                height: '600px',
+                display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'center',
                 backgroundColor: 'grey.50',
               }}
             >
-              <Box textAlign="center">
+              <Box textAlign='center'>
                 <CodeIcon sx={{ fontSize: 64, color: 'grey.400', mb: 2 }} />
-                <Typography variant="h6" color="grey.600">
+                <Typography variant='h6' color='grey.600'>
                   Generated component will appear here
                 </Typography>
-                <Typography variant="body2" color="grey.500">
-                  Enter a description and click "Generate Component" to get started
+                <Typography variant='body2' color='grey.500'>
+                  Enter a description and click "Generate Component" to get
+                  started
                 </Typography>
               </Box>
             </Paper>

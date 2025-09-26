@@ -6,7 +6,7 @@ import { ComponentGenerationService } from '@/lib/domain/services/ComponentGener
 import { GeminiProvider } from '@/lib/infrastructure/llm/GeminiProvider';
 import { CodeValidator } from '@/lib/infrastructure/validation/CodeValidator';
 import { PrismaClient } from '@prisma/client';
-import { errorHandler } from '@/lib/middleware/errorHandler';
+import { TemplateEngine } from '@/lib/core/templates/TemplateEngine';
 
 const prisma = new PrismaClient();
 
@@ -27,14 +27,19 @@ export async function GET(
     // Initialize repositories and services
     const componentRepository = new PrismaComponentRepository(prisma);
     const jobRepository = new PrismaGenerationJobRepository(prisma);
-    const llmProvider = new GeminiProvider();
+    const llmProvider = new GeminiProvider(
+      process.env.GEMINI_API_KEY || 'dummy-key',
+      process.env.GEMINI_MODEL || 'gemini-2.5-flash'
+    );
     const codeValidator = new CodeValidator();
+    const templateEngine = new TemplateEngine();
 
     const generationService = new ComponentGenerationService(
       componentRepository,
       jobRepository,
       llmProvider,
-      codeValidator
+      codeValidator,
+      templateEngine
     );
 
     const applicationService = new ComponentApplicationService(
@@ -43,7 +48,7 @@ export async function GET(
     );
 
     // Get job status
-    const job = await applicationService.getJobStatus(jobId);
+    const job: any = await applicationService.getJobStatus(jobId);
 
     if (!job) {
       return NextResponse.json(
@@ -53,7 +58,10 @@ export async function GET(
     }
 
     // If job is completed successfully, get the component
-    if (job.status === 'COMPLETED' && job.componentId) {
+    if (
+      (job.status === 'SUCCESS' || job.status === 'COMPLETED') &&
+      job.componentId
+    ) {
       const component = await applicationService.getComponentById(
         job.componentId
       );
@@ -106,4 +114,7 @@ export async function GET(
     console.error('Error in job status API:', error);
     return errorHandler(error);
   }
+}
+function errorHandler(error: unknown) {
+  throw new Error('Function not implemented.');
 }

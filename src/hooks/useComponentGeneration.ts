@@ -59,11 +59,9 @@ export function useComponentGeneration() {
 
         // Step 2: Poll for job completion
         const jobId = data.data.jobId || data.data.component.id; // Get job ID from response
-        console.log('Polling for job completion:', jobId);
 
         const pollJob = async (): Promise<GeneratedComponent> => {
           const jobResponse = await fetch(`/api/jobs/${jobId}`);
-          console.log('this is job response', jobResponse);
           const jobData = await jobResponse.json();
 
           if (!jobResponse.ok) {
@@ -79,15 +77,22 @@ export function useComponentGeneration() {
           }
 
           const job = jobData.data.job;
-          console.log('Job status:', job.status);
 
-          if (job.status === 'COMPLETED' && jobData.data.component) {
+          if (
+            (job.status === 'SUCCESS' || job.status === 'COMPLETED') &&
+            jobData.data.component
+          ) {
             // Job completed successfully
             return jobData.data.component;
           } else if (job.status === 'FAILED') {
             // Job failed
             throw new Error(
               job.error?.message || 'Component generation failed'
+            );
+          } else if (job.status === 'SUCCESS' || job.status === 'COMPLETED') {
+            // Job completed but no component data - this shouldn't happen
+            throw new Error(
+              'Job completed successfully but no component data was returned'
             );
           } else {
             // Job still in progress, wait and try again

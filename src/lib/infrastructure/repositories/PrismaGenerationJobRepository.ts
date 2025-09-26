@@ -5,6 +5,81 @@ import { GenerationStatus } from '@/types';
 
 export class PrismaGenerationJobRepository implements IGenerationJobRepository {
   constructor(private prisma: PrismaClient) {}
+  findAll(options?: {
+    limit?: number;
+    offset?: number;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }): Promise<{ jobs: GenerationJob[]; total: number }> {
+    throw new Error('Method not implemented.');
+  }
+  findByUserId(
+    userId: string,
+    options?: { limit?: number; offset?: number }
+  ): Promise<{ jobs: GenerationJob[]; total: number }> {
+    throw new Error('Method not implemented.');
+  }
+  findPendingJobs(limit?: number): Promise<GenerationJob[]> {
+    throw new Error('Method not implemented.');
+  }
+  findProcessingJobs(): Promise<GenerationJob[]> {
+    throw new Error('Method not implemented.');
+  }
+  findRetryableJobs(limit?: number): Promise<GenerationJob[]> {
+    throw new Error('Method not implemented.');
+  }
+  getNextPendingJob(): Promise<GenerationJob | null> {
+    throw new Error('Method not implemented.');
+  }
+  markAsProcessing(id: string): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+  markAsCompleted(id: string, result: any): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+  markAsFailed(id: string, error: Error): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+  deleteCompletedJobs(olderThanDays: number): Promise<number> {
+    throw new Error('Method not implemented.');
+  }
+  deleteFailedJobs(olderThanDays: number): Promise<number> {
+    throw new Error('Method not implemented.');
+  }
+  getJobStats(): Promise<{
+    total: number;
+    pending: number;
+    processing: number;
+    completed: number;
+    failed: number;
+    retryable: number;
+  }> {
+    throw new Error('Method not implemented.');
+  }
+  getJobMetrics(
+    fromDate?: Date,
+    toDate?: Date
+  ): Promise<{
+    totalJobs: number;
+    successfulJobs: number;
+    failedJobs: number;
+    averageProcessingTime: number;
+    successRate: number;
+  }> {
+    throw new Error('Method not implemented.');
+  }
+  findStuckJobs(timeoutMinutes: number): Promise<GenerationJob[]> {
+    throw new Error('Method not implemented.');
+  }
+  findJobsOlderThan(hours: number): Promise<GenerationJob[]> {
+    throw new Error('Method not implemented.');
+  }
+  deleteMany(ids: string[]): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+  updateStatus(ids: string[], status: GenerationStatus): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
 
   async create(job: GenerationJob): Promise<GenerationJob> {
     const data = {
@@ -30,6 +105,7 @@ export class PrismaGenerationJobRepository implements IGenerationJobRepository {
         : null,
       retryCount: job.retryCount,
       metadata: JSON.stringify(job.metadata || {}),
+      componentId: job.componentId,
     };
 
     const created = await this.prisma.generationLog.create({
@@ -62,6 +138,7 @@ export class PrismaGenerationJobRepository implements IGenerationJobRepository {
         : null,
       retryCount: job.retryCount,
       metadata: JSON.stringify(job.metadata || {}),
+      componentId: job.componentId,
     };
 
     const updated = await this.prisma.generationLog.update({
@@ -72,13 +149,18 @@ export class PrismaGenerationJobRepository implements IGenerationJobRepository {
     return this.mapToEntity(updated);
   }
 
-  async findByStatus(status: GenerationStatus): Promise<GenerationJob[]> {
+  async findByStatus(
+    status: GenerationStatus
+  ): Promise<{ jobs: GenerationJob[]; total: number }> {
     const records = await this.prisma.generationLog.findMany({
       where: { status },
       orderBy: { createdAt: 'desc' },
     });
 
-    return records.map(record => this.mapToEntity(record));
+    return {
+      jobs: records.map(record => this.mapToEntity(record)),
+      total: records.length,
+    };
   }
 
   async findRecent(limit: number = 10): Promise<GenerationJob[]> {
@@ -90,14 +172,13 @@ export class PrismaGenerationJobRepository implements IGenerationJobRepository {
     return records.map(record => this.mapToEntity(record));
   }
 
-  async delete(id: string): Promise<boolean> {
+  async delete(id: string): Promise<void> {
     try {
       await this.prisma.generationLog.delete({
         where: { id },
       });
-      return true;
     } catch (error) {
-      return false;
+      throw new Error('Failed to delete generation job');
     }
   }
 
@@ -111,7 +192,7 @@ export class PrismaGenerationJobRepository implements IGenerationJobRepository {
           lt: cutoffDate,
         },
         status: {
-          in: [GenerationStatus.COMPLETED, GenerationStatus.FAILED],
+          in: [GenerationStatus.SUCCESS, GenerationStatus.FAILED],
         },
       },
     });
@@ -138,6 +219,7 @@ export class PrismaGenerationJobRepository implements IGenerationJobRepository {
     (job as any).error = record.error ? JSON.parse(record.error) : null;
     (job as any).retryCount = record.retryCount;
     (job as any).metadata = record.metadata ? JSON.parse(record.metadata) : {};
+    job.componentId = record.componentId;
 
     return job;
   }

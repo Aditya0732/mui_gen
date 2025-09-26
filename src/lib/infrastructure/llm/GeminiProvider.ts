@@ -14,7 +14,7 @@ export class GeminiProvider implements ILLMProvider {
 
   constructor(
     private apiKey: string,
-    private modelName: string = 'gemini-1.5-flash'
+    private modelName: string = 'gemini-2.5-flash'
   ) {
     if (!apiKey) {
       throw new Error('Gemini API key is required');
@@ -22,7 +22,7 @@ export class GeminiProvider implements ILLMProvider {
     this.client = new GoogleGenerativeAI(apiKey);
     // Use the correct model name like in your working project
     const actualModelName =
-      modelName === 'gemini-pro' ? 'gemini-1.5-flash' : modelName;
+      modelName === 'gemini-2.5-flash' ? modelName : 'gemini-2.5-flash';
     this.model = this.client.getGenerativeModel({ model: actualModelName });
   }
 
@@ -45,7 +45,7 @@ export class GeminiProvider implements ILLMProvider {
 
       console.log('GeminiProvider: Received response from Gemini API');
       console.log('Response length:', text.length);
-      console.log('Response preview:', text.substring(0, 500) + '...');
+      console.log('Response preview:', text);
 
       // Parse JSON response - handle markdown code blocks
       let parsedResponse;
@@ -68,6 +68,7 @@ export class GeminiProvider implements ILLMProvider {
         try {
           parsedResponse = JSON.parse(cleanedText);
           console.log('Successfully parsed JSON after cleaning markdown');
+          console.log('this is my component', parsedResponse);
         } catch (secondParseError) {
           // Last attempt: extract JSON object with better regex
           console.log('Attempting regex extraction...');
@@ -175,7 +176,7 @@ export class GeminiProvider implements ILLMProvider {
       const text = response.text();
 
       console.log('GeminiProvider: Analysis response received');
-      console.log('Analysis response:', text.substring(0, 200) + '...');
+      console.log('Analysis response:', text);
 
       // Parse JSON response - handle markdown code blocks
       let parsedResponse;
@@ -265,7 +266,12 @@ CRITICAL RULES:
 4. Use TypeScript with strongly typed props (no 'any')
 5. NO dangerouslySetInnerHTML, window, document.cookie, or external network calls
 6. Include proper accessibility attributes (aria-label, role, etc.)
-7. Component name must be PascalCase and descriptive`;
+7. Component name must be PascalCase and descriptive
+8. IMPORTANT: All props must have default values so component can render without any props
+9. For tables: provide default sample data (users, products, etc.)
+10. For forms: provide default values and handlers that show alerts
+11. For buttons: provide default onClick handlers
+12. Component should be fully functional with default props for preview purposes`;
 
     const contextInfo = context
       ? `

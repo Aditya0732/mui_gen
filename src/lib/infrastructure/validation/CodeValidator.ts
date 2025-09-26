@@ -11,7 +11,7 @@ export class CodeValidator implements ICodeValidator {
   constructor() {
     this.project = new Project({
       compilerOptions: {
-        target: ts.ScriptTarget.ES2022,
+        target: ts.ScriptTarget.ES2022 as any,
         lib: ['dom', 'dom.iterable', 'esnext'],
         allowJs: false,
         skipLibCheck: true,
@@ -19,7 +19,7 @@ export class CodeValidator implements ICodeValidator {
         allowSyntheticDefaultImports: true,
         strict: true,
         forceConsistentCasingInFileNames: true,
-        module: ts.ModuleKind.ESNext,
+        module: ts.ModuleKind.ESNext as any,
         moduleResolution: ts.ModuleResolutionKind.Node16,
         resolveJsonModule: true,
         isolatedModules: true,
@@ -84,18 +84,20 @@ export class CodeValidator implements ICodeValidator {
   }> {
     try {
       // Create a temporary source file
-      const sourceFile = this.project.createSourceFile('temp.tsx', code, { overwrite: true });
-      
+      const sourceFile = this.project.createSourceFile('temp.tsx', code, {
+        overwrite: true,
+      });
+
       // Get diagnostics
       const diagnostics = sourceFile.getPreEmitDiagnostics();
-      
+
       const errors = diagnostics.map(diagnostic => {
         const message = diagnostic.getMessageText();
         const start = diagnostic.getStart();
-        
+
         let line: number | undefined;
         let column: number | undefined;
-        
+
         if (start !== undefined) {
           const lineAndColumn = sourceFile.getLineAndColumnAtPos(start);
           line = lineAndColumn.line;
@@ -103,7 +105,8 @@ export class CodeValidator implements ICodeValidator {
         }
 
         return {
-          message: typeof message === 'string' ? message : message.getMessageText(),
+          message:
+            typeof message === 'string' ? message : message.getMessageText(),
           line,
           column,
         };
@@ -116,13 +119,14 @@ export class CodeValidator implements ICodeValidator {
         isValid: errors.length === 0,
         errors,
       };
-
     } catch (error) {
       return {
         isValid: false,
-        errors: [{
-          message: `TypeScript validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        }],
+        errors: [
+          {
+            message: `TypeScript validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          },
+        ],
       };
     }
   }
@@ -155,10 +159,14 @@ export class CodeValidator implements ICodeValidator {
 
     // AST-based analysis for more sophisticated checks
     try {
-      const sourceFile = this.project.createSourceFile('safety-check.tsx', code, { overwrite: true });
-      
+      const sourceFile = this.project.createSourceFile(
+        'safety-check.tsx',
+        code,
+        { overwrite: true }
+      );
+
       // Check for forbidden identifiers
-      sourceFile.forEachDescendant(node => {
+      sourceFile.forEachDescendant((node: any) => {
         if (ts.isIdentifier(node.compilerNode)) {
           const text = node.getText();
           if (this.forbiddenIdentifiers.has(text)) {
@@ -173,7 +181,10 @@ export class CodeValidator implements ICodeValidator {
         // Check for dynamic property access that might be dangerous
         if (ts.isElementAccessExpression(node.compilerNode)) {
           const expression = node.getText();
-          if (expression.includes('window[') || expression.includes('document[')) {
+          if (
+            expression.includes('window[') ||
+            expression.includes('document[')
+          ) {
             violations.push({
               type: 'dynamic-access',
               message: `Potentially dangerous dynamic property access: ${expression}`,
@@ -203,7 +214,6 @@ export class CodeValidator implements ICodeValidator {
 
       // Clean up
       this.project.removeSourceFile(sourceFile);
-
     } catch (error) {
       violations.push({
         type: 'ast-analysis-error',
@@ -225,28 +235,36 @@ export class CodeValidator implements ICodeValidator {
     const forbiddenImports: string[] = [];
 
     try {
-      const sourceFile = this.project.createSourceFile('import-check.tsx', code, { overwrite: true });
-      
+      const sourceFile = this.project.createSourceFile(
+        'import-check.tsx',
+        code,
+        { overwrite: true }
+      );
+
       // Get all import declarations
       const importDeclarations = sourceFile.getImportDeclarations();
-      
+
       for (const importDecl of importDeclarations) {
         const moduleSpecifier = importDecl.getModuleSpecifierValue();
-        
+
         if (!this.isAllowedImport(moduleSpecifier)) {
           forbiddenImports.push(moduleSpecifier);
         }
       }
 
       // Check for dynamic imports
-      sourceFile.forEachDescendant(node => {
+      sourceFile.forEachDescendant((node: any) => {
         if (ts.isCallExpression(node.compilerNode)) {
           const callExpression = node.asKind(ts.SyntaxKind.CallExpression);
           if (callExpression) {
             const expression = callExpression.getExpression();
-            if (ts.isImportKeyword(expression.compilerNode)) {
+            // Fix: Use ts.SyntaxKind.ImportKeyword to check for dynamic import
+            if (expression.getKind() === ts.SyntaxKind.ImportKeyword) {
               const args = callExpression.getArguments();
-              if (args.length > 0 && ts.isStringLiteral(args[0].compilerNode)) {
+              if (
+                args.length > 0 &&
+                args[0].getKind() === ts.SyntaxKind.StringLiteral
+              ) {
                 const moduleSpecifier = args[0].getLiteralValue();
                 if (!this.isAllowedImport(moduleSpecifier)) {
                   forbiddenImports.push(moduleSpecifier);
@@ -259,12 +277,12 @@ export class CodeValidator implements ICodeValidator {
 
       // Clean up
       this.project.removeSourceFile(sourceFile);
-
     } catch (error) {
       // Fallback to regex-based import detection
-      const importRegex = /import\s+(?:[\w\s{},*]+\s+from\s+)?['"]([^'"]+)['"]/g;
+      const importRegex =
+        /import\s+(?:[\w\s{},*]+\s+from\s+)?['"]([^'"]+)['"]/g;
       let match;
-      
+
       while ((match = importRegex.exec(code)) !== null) {
         const moduleSpecifier = match[1];
         if (!this.isAllowedImport(moduleSpecifier)) {
@@ -303,8 +321,12 @@ export class CodeValidator implements ICodeValidator {
     const issues: string[] = [];
 
     try {
-      const sourceFile = this.project.createSourceFile('react-check.tsx', code, { overwrite: true });
-      
+      const sourceFile = this.project.createSourceFile(
+        'react-check.tsx',
+        code,
+        { overwrite: true }
+      );
+
       let hasDefaultExport = false;
       let hasReactImport = false;
       let componentName = '';
@@ -325,9 +347,14 @@ export class CodeValidator implements ICodeValidator {
 
       // Check for default export
       const exportAssignments = sourceFile.getExportAssignments();
-      const defaultExports = sourceFile.getExportedDeclarations().get('default');
-      
-      if (exportAssignments.length === 0 && (!defaultExports || defaultExports.length === 0)) {
+      const defaultExports = sourceFile
+        .getExportedDeclarations()
+        .get('default');
+
+      if (
+        exportAssignments.length === 0 &&
+        (!defaultExports || defaultExports.length === 0)
+      ) {
         issues.push('Missing default export');
       } else {
         hasDefaultExport = true;
@@ -336,9 +363,9 @@ export class CodeValidator implements ICodeValidator {
       // Check for component function/class
       const functionDeclarations = sourceFile.getFunctions();
       const variableDeclarations = sourceFile.getVariableDeclarations();
-      
+
       let hasComponentFunction = false;
-      
+
       for (const func of functionDeclarations) {
         const name = func.getName();
         if (name && /^[A-Z]/.test(name)) {
@@ -352,11 +379,12 @@ export class CodeValidator implements ICodeValidator {
         for (const varDecl of variableDeclarations) {
           const name = varDecl.getName();
           if (name && /^[A-Z]/.test(name)) {
-            const initializer = varDecl.getInitializer();
-            if (initializer && (
-              ts.isArrowFunction(initializer.compilerNode) ||
-              ts.isFunctionExpression(initializer.compilerNode)
-            )) {
+            const initializer: any = varDecl.getInitializer();
+            if (
+              initializer &&
+              (ts.isArrowFunction(initializer.compilerNode) ||
+                ts.isFunctionExpression(initializer.compilerNode))
+            ) {
               hasComponentFunction = true;
               componentName = name;
               break;
@@ -366,13 +394,17 @@ export class CodeValidator implements ICodeValidator {
       }
 
       if (!hasComponentFunction) {
-        issues.push('No React component function found (must start with uppercase letter)');
+        issues.push(
+          'No React component function found (must start with uppercase letter)'
+        );
       }
 
       // Check for proper TypeScript props interface
       const interfaces = sourceFile.getInterfaces();
-      const hasPropsInterface = interfaces.some(iface => 
-        iface.getName().includes('Props') || iface.getName().includes(componentName)
+      const hasPropsInterface = interfaces.some(
+        iface =>
+          iface.getName().includes('Props') ||
+          iface.getName().includes(componentName)
       );
 
       if (!hasPropsInterface && componentName) {
@@ -381,9 +413,10 @@ export class CodeValidator implements ICodeValidator {
 
       // Clean up
       this.project.removeSourceFile(sourceFile);
-
     } catch (error) {
-      issues.push(`React component validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      issues.push(
+        `React component validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
 
     return {
@@ -402,12 +435,14 @@ export class CodeValidator implements ICodeValidator {
     const accessibilityPatterns = [
       {
         pattern: /<button[^>]*>/gi,
-        check: (match: string) => !match.includes('aria-label') && !match.includes('aria-labelledby'),
+        check: (match: string) =>
+          !match.includes('aria-label') && !match.includes('aria-labelledby'),
         message: 'Button elements should have aria-label or aria-labelledby',
       },
       {
         pattern: /<input[^>]*>/gi,
-        check: (match: string) => !match.includes('aria-label') && !match.includes('aria-labelledby'),
+        check: (match: string) =>
+          !match.includes('aria-label') && !match.includes('aria-labelledby'),
         message: 'Input elements should have aria-label or aria-labelledby',
       },
       {
