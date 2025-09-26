@@ -5,18 +5,22 @@ import { ComponentType, ComponentCandidate } from './component';
 export const GenerationRequest = z.object({
   prompt: z.string().min(1).max(2000),
   preferredType: z.nativeEnum(ComponentType).optional(),
-  context: z.object({
-    theme: z.enum(['light', 'dark', 'auto']).default('light'),
-    accessibility: z.boolean().default(true),
-    responsive: z.boolean().default(true),
-    typescript: z.boolean().default(true),
-  }).optional(),
-  options: z.object({
-    includeExamples: z.boolean().default(true),
-    includeComments: z.boolean().default(true),
-    maxComplexity: z.enum(['simple', 'medium', 'complex']).default('medium'),
-    allowCustomComponents: z.boolean().default(false),
-  }).optional(),
+  context: z
+    .object({
+      theme: z.enum(['light', 'dark', 'auto']).default('light'),
+      accessibility: z.boolean().default(true),
+      responsive: z.boolean().default(true),
+      typescript: z.boolean().default(true),
+    })
+    .optional(),
+  options: z
+    .object({
+      includeExamples: z.boolean().default(true),
+      includeComments: z.boolean().default(true),
+      maxComplexity: z.enum(['simple', 'medium', 'complex']).default('medium'),
+      allowCustomComponents: z.boolean().default(false),
+    })
+    .optional(),
 });
 
 export type GenerationRequest = z.infer<typeof GenerationRequest>;
@@ -24,15 +28,18 @@ export type GenerationRequest = z.infer<typeof GenerationRequest>;
 // Generation Response
 export const GenerationResponse = z.object({
   success: z.boolean(),
-  component: z.object({
-    componentType: z.nativeEnum(ComponentType),
-    componentName: z.string(),
-    code: z.string(),
-    propsSchema: z.any(), // Will be validated separately
-    description: z.string().optional(),
-    examples: z.array(z.string()).optional(),
-    variants: z.array(z.string()).optional(),
-  }).optional(),
+  component: z
+    .object({
+      componentType: z.nativeEnum(ComponentType),
+      componentName: z.string(),
+      previewContent: z.string(),
+      code: z.string(),
+      propsSchema: z.any(), // Will be validated separately
+      description: z.string().optional(),
+      examples: z.array(z.string()).optional(),
+      variants: z.array(z.string()).optional(),
+    })
+    .optional(),
   candidates: z.array(ComponentCandidate).optional(),
   metadata: z.object({
     processingTime: z.number(),
@@ -41,15 +48,25 @@ export const GenerationResponse = z.object({
     intentMatch: z.number().min(0).max(1),
     complexity: z.enum(['simple', 'medium', 'complex']),
   }),
-  error: z.object({
-    type: z.enum(['validation', 'generation', 'parsing', 'timeout', 'rate_limit']),
-    message: z.string(),
-    details: z.any().optional(),
-    recovery: z.object({
-      suggestions: z.array(z.string()),
-      fallbackComponent: z.string().optional(),
-    }).optional(),
-  }).optional(),
+  error: z
+    .object({
+      type: z.enum([
+        'validation',
+        'generation',
+        'parsing',
+        'timeout',
+        'rate_limit',
+      ]),
+      message: z.string(),
+      details: z.any().optional(),
+      recovery: z
+        .object({
+          suggestions: z.array(z.string()),
+          fallbackComponent: z.string().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
 export type GenerationResponse = z.infer<typeof GenerationResponse>;

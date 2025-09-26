@@ -13,6 +13,7 @@ export class PrismaComponentRepository implements IComponentRepository {
         name: component.name,
         type: component.type as any,
         code: component.code,
+        previewContent: (component as any).previewContent,
         propsSchema: component.propsSchema as any,
         description: component.description,
         examples: component.examples?.join('\n---\n'),
@@ -50,6 +51,7 @@ export class PrismaComponentRepository implements IComponentRepository {
       data: {
         name: component.name,
         code: component.code,
+        previewContent: (component as any).previewContent,
         propsSchema: component.propsSchema as any,
         description: component.description,
         examples: component.examples?.join('\n---\n'),
@@ -80,7 +82,12 @@ export class PrismaComponentRepository implements IComponentRepository {
     components: Component[];
     total: number;
   }> {
-    const { limit = 20, offset = 0, sortBy = 'createdAt', sortOrder = 'desc' } = options || {};
+    const {
+      limit = 20,
+      offset = 0,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = options || {};
 
     const [data, total] = await Promise.all([
       this.prisma.component.findMany({
@@ -285,10 +292,12 @@ export class PrismaComponentRepository implements IComponentRepository {
     return data.map(this.mapToEntity);
   }
 
-  async getCountByType(): Promise<Array<{
-    type: ComponentType;
-    count: number;
-  }>> {
+  async getCountByType(): Promise<
+    Array<{
+      type: ComponentType;
+      count: number;
+    }>
+  > {
     const data = await this.prisma.component.groupBy({
       by: ['type'],
       _count: { type: true },
@@ -402,7 +411,7 @@ export class PrismaComponentRepository implements IComponentRepository {
   }
 
   private mapToEntity = (data: any): Component => {
-    return new Component(
+    const component = new Component(
       data.id,
       data.name,
       data.type,
@@ -419,5 +428,10 @@ export class PrismaComponentRepository implements IComponentRepository {
       data.usageCount,
       data.lastUsedAt
     );
+
+    // Add previewContent as a property (since it's not in the constructor)
+    (component as any).previewContent = data.previewContent;
+
+    return component;
   };
 }

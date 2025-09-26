@@ -290,6 +290,7 @@ export function ComponentGenerator() {
                 <TabPanel value={activeTab} index={1}>
                   <ComponentPreview
                     code={generatedComponent.code}
+                    previewContent={(generatedComponent as any).previewContent}
                     theme={options.theme}
                     height='500px'
                   />

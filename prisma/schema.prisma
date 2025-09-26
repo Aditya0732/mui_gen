@@ -16,6 +16,7 @@ model Component {
   name        String   @unique
   type        ComponentType
   code        String   @db.Text
+  previewContent String? @db.Text
   propsSchema Json
   examples    String?  @db.Text
   description String?  @db.Text

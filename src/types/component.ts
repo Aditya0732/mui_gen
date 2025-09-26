@@ -44,12 +44,14 @@ export const PropSchemaItem = z.object({
   required: z.boolean().default(false),
   description: z.string().optional(),
   defaultValue: z.any().optional(),
-  validation: z.object({
-    min: z.number().optional(),
-    max: z.number().optional(),
-    pattern: z.string().optional(),
-    enum: z.array(z.string()).optional(),
-  }).optional(),
+  validation: z
+    .object({
+      min: z.number().optional(),
+      max: z.number().optional(),
+      pattern: z.string().optional(),
+      enum: z.array(z.string()).optional(),
+    })
+    .optional(),
 });
 
 export type PropSchemaItem = z.infer<typeof PropSchemaItem>;
@@ -67,6 +69,7 @@ export const ComponentGenerationSchema = z.object({
   componentName: z.string().regex(/^[A-Z][a-zA-Z0-9]*$/),
   propsSchema: PropsSchema,
   code: z.string(),
+  previewContent: z.string(),
   variants: z.array(z.string()).optional(),
   description: z.string().optional(),
   examples: z.array(z.string()).optional(),

@@ -254,6 +254,7 @@ export class GeminiProvider implements ILLMProvider {
     ]
   },
   "code": "string (complete React TypeScript component)",
+  "previewContent": "string (complete HTML with inline JavaScript for iframe preview)",
   "variants": ["string array (optional)"],
   "description": "string (optional)",
   "examples": ["string array (optional)"]
@@ -261,17 +262,27 @@ export class GeminiProvider implements ILLMProvider {
 
 CRITICAL RULES:
 1. Output ONLY valid JSON - no text before or after
-2. Use ONLY these imports: @mui/material, @mui/x-data-grid (tables only), react-hook-form (forms only)
-3. Component must have default export
-4. Use TypeScript with strongly typed props (no 'any')
-5. NO dangerouslySetInnerHTML, window, document.cookie, or external network calls
-6. Include proper accessibility attributes (aria-label, role, etc.)
-7. Component name must be PascalCase and descriptive
-8. IMPORTANT: All props must have default values so component can render without any props
+2. Generate TWO versions:
+   - "code": Full TypeScript React component for download/editing
+   - "previewContent": Complete HTML page with inline JavaScript for iframe preview
+3. The previewContent must be a complete HTML document that renders the component using vanilla JavaScript and React from CDN
+4. Use ONLY these imports in code: @mui/material, @mui/x-data-grid (tables only), react-hook-form (forms only)
+5. Component name must be PascalCase and descriptive
+6. NO dangerouslySetInnerHTML, window, document.cookie, or external network calls
+7. Include proper accessibility attributes (aria-label, role, etc.)
+8. IMPORTANT: Component should be fully functional with default props for preview purposes
 9. For tables: provide default sample data (users, products, etc.)
 10. For forms: provide default values and handlers that show alerts
 11. For buttons: provide default onClick handlers
-12. Component should be fully functional with default props for preview purposes`;
+
+PREVIEW CONTENT REQUIREMENTS:
+- Complete HTML document with DOCTYPE, head, body
+- Load React, ReactDOM, and MUI from CDN (esm.sh)
+- Use vanilla JavaScript with React.createElement
+- Include proper error handling
+- Component should render immediately without external dependencies
+- Use string concatenation instead of template literals
+- All event handlers should work (alerts, console.log, etc.)`;
 
     const contextInfo = context
       ? `
@@ -334,32 +345,34 @@ Return analysis as JSON:`;
   private getFewShotExamples(): string {
     return `
 Example 1:
-Input: "table with name and email columns, edit and delete actions"
+Input: "simple button with click handler"
 Output: {
-  "componentType": "MUITable",
-  "componentName": "UserTable",
+  "componentType": "MUIButton",
+  "componentName": "ActionButton",
   "propsSchema": {
     "props": [
-      {"name": "rows", "type": "Array<{id: string; name: string; email: string}>", "required": true},
-      {"name": "onEdit", "type": "(row: any) => void", "required": false},
-      {"name": "onDelete", "type": "(row: any) => void", "required": false}
+      {"name": "label", "type": "string", "required": false},
+      {"name": "onClick", "type": "() => void", "required": false},
+      {"name": "variant", "type": "'contained' | 'outlined' | 'text'", "required": false}
     ]
   },
-  "code": "import React from 'react';\\nimport { DataGrid, GridColDef, GridActionsCellItem } from '@mui/x-data-grid';\\nimport { EditIcon, DeleteIcon } from '@mui/icons-material';\\n\\ninterface UserTableProps {\\n  rows: Array<{id: string; name: string; email: string}>;\\n  onEdit?: (row: any) => void;\\n  onDelete?: (row: any) => void;\\n}\\n\\nconst UserTable: React.FC<UserTableProps> = ({ rows, onEdit, onDelete }) => {\\n  const columns: GridColDef[] = [\\n    { field: 'name', headerName: 'Name', width: 150 },\\n    { field: 'email', headerName: 'Email', width: 200 },\\n    {\\n      field: 'actions',\\n      type: 'actions',\\n      headerName: 'Actions',\\n      width: 100,\\n      getActions: (params) => [\\n        <GridActionsCellItem\\n          icon={<EditIcon />}\\n          label=\\"Edit\\"\\n          onClick={() => onEdit?.(params.row)}\\n        />,\\n        <GridActionsCellItem\\n          icon={<DeleteIcon />}\\n          label=\\"Delete\\"\\n          onClick={() => onDelete?.(params.row)}\\n        />\\n      ]\\n    }\\n  ];\\n\\n  return (\\n    <DataGrid\\n      rows={rows}\\n      columns={columns}\\n      autoHeight\\n      disableRowSelectionOnClick\\n    />\\n  );\\n};\\n\\nexport default UserTable;"
+  "code": "import React from 'react';\\nimport { Button } from '@mui/material';\\n\\ninterface ActionButtonProps {\\n  label?: string;\\n  onClick?: () => void;\\n  variant?: 'contained' | 'outlined' | 'text';\\n}\\n\\nconst ActionButton: React.FC<ActionButtonProps> = ({ \\n  label = 'Click Me', \\n  onClick = () => alert('Button clicked!'), \\n  variant = 'contained' \\n}) => {\\n  return (\\n    <Button \\n      variant={variant} \\n      onClick={onClick}\\n      sx={{ m: 2 }}\\n    >\\n      {label}\\n    </Button>\\n  );\\n};\\n\\nexport default ActionButton;",
+  "previewContent": "<!DOCTYPE html>\\n<html lang=\\"en\\">\\n<head>\\n  <meta charset=\\"UTF-8\\">\\n  <meta name=\\"viewport\\" content=\\"width=device-width, initial-scale=1.0\\">\\n  <title>ActionButton Preview</title>\\n  <link rel=\\"stylesheet\\" href=\\"https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap\\">\\n  <style>\\n    body { margin: 0; padding: 16px; font-family: 'Roboto', sans-serif; background-color: #fafafa; }\\n  </style>\\n</head>\\n<body>\\n  <div id=\\"root\\"></div>\\n  <script type=\\"module\\">\\n    import React from 'https://esm.sh/react@18';\\n    import { createRoot } from 'https://esm.sh/react-dom@18/client';\\n    import { Button } from 'https://esm.sh/@mui/material@5.15.0';\\n\\n    const ActionButton = () => {\\n      const handleClick = () => alert('Button clicked!');\\n      return React.createElement(Button, {\\n        variant: 'contained',\\n        onClick: handleClick,\\n        sx: { m: 2 }\\n      }, 'Click Me');\\n    };\\n\\n    const root = createRoot(document.getElementById('root'));\\n    root.render(React.createElement(ActionButton));\\n  </script>\\n</body>\\n</html>"
 }
 
 Example 2:
-Input: "contact form with name, email, message fields"
+Input: "card with title and description"
 Output: {
-  "componentType": "MUIForm",
-  "componentName": "ContactForm",
+  "componentType": "MUICard",
+  "componentName": "InfoCard",
   "propsSchema": {
     "props": [
-      {"name": "onSubmit", "type": "(data: ContactFormData) => void", "required": true},
-      {"name": "loading", "type": "boolean", "required": false}
+      {"name": "title", "type": "string", "required": false},
+      {"name": "description", "type": "string", "required": false}
     ]
   },
-  "code": "import React from 'react';\\nimport { useForm, Controller } from 'react-hook-form';\\nimport { Box, TextField, Button, Typography } from '@mui/material';\\n\\ninterface ContactFormData {\\n  name: string;\\n  email: string;\\n  message: string;\\n}\\n\\ninterface ContactFormProps {\\n  onSubmit: (data: ContactFormData) => void;\\n  loading?: boolean;\\n}\\n\\nconst ContactForm: React.FC<ContactFormProps> = ({ onSubmit, loading }) => {\\n  const { control, handleSubmit, formState: { errors } } = useForm<ContactFormData>();\\n\\n  return (\\n    <Box component=\\"form\\" onSubmit={handleSubmit(onSubmit)} sx={{ maxWidth: 600 }}>\\n      <Typography variant=\\"h5\\" component=\\"h2\\" gutterBottom>\\n        Contact Us\\n      </Typography>\\n      \\n      <Controller\\n        name=\\"name\\"\\n        control={control}\\n        rules={{ required: 'Name is required' }}\\n        render={({ field }) => (\\n          <TextField\\n            {...field}\\n            fullWidth\\n            label=\\"Name\\"\\n            error={!!errors.name}\\n            helperText={errors.name?.message}\\n            margin=\\"normal\\"\\n          />\\n        )}\\n      />\\n      \\n      <Controller\\n        name=\\"email\\"\\n        control={control}\\n        rules={{ \\n          required: 'Email is required',\\n          pattern: { value: /^[^@]+@[^@]+\\.[^@]+$/, message: 'Invalid email' }\\n        }}\\n        render={({ field }) => (\\n          <TextField\\n            {...field}\\n            fullWidth\\n            label=\\"Email\\"\\n            type=\\"email\\"\\n            error={!!errors.email}\\n            helperText={errors.email?.message}\\n            margin=\\"normal\\"\\n          />\\n        )}\\n      />\\n      \\n      <Controller\\n        name=\\"message\\"\\n        control={control}\\n        rules={{ required: 'Message is required' }}\\n        render={({ field }) => (\\n          <TextField\\n            {...field}\\n            fullWidth\\n            label=\\"Message\\"\\n            multiline\\n            rows={4}\\n            error={!!errors.message}\\n            helperText={errors.message?.message}\\n            margin=\\"normal\\"\\n          />\\n        )}\\n      />\\n      \\n      <Button\\n        type=\\"submit\\"\\n        variant=\\"contained\\"\\n        color=\\"primary\\"\\n        disabled={loading}\\n        sx={{ mt: 2 }}\\n      >\\n        {loading ? 'Sending...' : 'Send Message'}\\n      </Button>\\n    </Box>\\n  );\\n};\\n\\nexport default ContactForm;"
+  "code": "import React from 'react';\\nimport { Card, CardContent, Typography } from '@mui/material';\\n\\ninterface InfoCardProps {\\n  title?: string;\\n  description?: string;\\n}\\n\\nconst InfoCard: React.FC<InfoCardProps> = ({ \\n  title = 'Sample Title', \\n  description = 'This is a sample description for the card component.' \\n}) => {\\n  return (\\n    <Card sx={{ maxWidth: 400, m: 2 }}>\\n      <CardContent>\\n        <Typography variant=\\"h5\\" component=\\"h2\\" gutterBottom>\\n          {title}\\n        </Typography>\\n        <Typography variant=\\"body2\\" color=\\"text.secondary\\">\\n          {description}\\n        </Typography>\\n      </CardContent>\\n    </Card>\\n  );\\n};\\n\\nexport default InfoCard;",
+  "previewContent": "<!DOCTYPE html>\\n<html lang=\\"en\\">\\n<head>\\n  <meta charset=\\"UTF-8\\">\\n  <meta name=\\"viewport\\" content=\\"width=device-width, initial-scale=1.0\\">\\n  <title>InfoCard Preview</title>\\n  <link rel=\\"stylesheet\\" href=\\"https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap\\">\\n  <style>\\n    body { margin: 0; padding: 16px; font-family: 'Roboto', sans-serif; background-color: #fafafa; }\\n  </style>\\n</head>\\n<body>\\n  <div id=\\"root\\"></div>\\n  <script type=\\"module\\">\\n    import React from 'https://esm.sh/react@18';\\n    import { createRoot } from 'https://esm.sh/react-dom@18/client';\\n    import { Card, CardContent, Typography } from 'https://esm.sh/@mui/material@5.15.0';\\n\\n    const InfoCard = () => {\\n      return React.createElement(Card, { sx: { maxWidth: 400, m: 2 } },\\n        React.createElement(CardContent, null,\\n          React.createElement(Typography, { variant: 'h5', component: 'h2', gutterBottom: true }, 'Sample Title'),\\n          React.createElement(Typography, { variant: 'body2', color: 'text.secondary' }, 'This is a sample description for the card component.')\\n        )\\n      );\\n    };\\n\\n    const root = createRoot(document.getElementById('root'));\\n    root.render(React.createElement(InfoCard));\\n  </script>\\n</body>\\n</html>"
 }`;
   }
 

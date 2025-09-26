@@ -485,6 +485,7 @@ export function ComponentLibrary() {
                 ) : selectedComponentCode ? (
                   <ComponentPreview
                     code={selectedComponentCode}
+                    previewContent={(selectedComponent as any)?.previewContent}
                     theme='light'
                     height='100%'
                   />

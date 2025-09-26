@@ -274,6 +274,23 @@ export namespace API {
   });
 
   export type ComponentResponse = z.infer<typeof ComponentResponse>;
+
+  // Compile Component
+  export const CompileRequest = z.object({
+    code: z.string(),
+    componentName: z.string().optional(),
+  });
+
+  export type CompileRequest = z.infer<typeof CompileRequest>;
+
+  export const CompileResponse = z.object({
+    success: z.boolean(),
+    html: z.string().optional(),
+    error: z.string().optional(),
+    logs: z.array(z.string()).optional(),
+  });
+
+  export type CompileResponse = z.infer<typeof CompileResponse>;
 }
 
 // HTTP Status Codes

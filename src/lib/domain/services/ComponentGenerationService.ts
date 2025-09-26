@@ -119,10 +119,7 @@ export class ComponentGenerationService {
         'Using LLM-generated code directly (validation temporarily disabled)'
       );
       console.log('LLM Code length:', llmResponse.component.code.length);
-      console.log(
-        'LLM Code preview:',
-        llmResponse.component.code.substring(0, 200) + '...'
-      );
+      console.log('LLM Code preview:', llmResponse.component.previewContent);
 
       // TODO: Re-enable validation after fixing validation issues
       // const validationResult = await this.validateGeneratedCode(
@@ -187,6 +184,12 @@ export class ComponentGenerationService {
         '1.0.0',
         userId
       );
+
+      // Add previewContent if available
+      if (llmResponse.component.previewContent) {
+        (component as any).previewContent =
+          llmResponse.component.previewContent;
+      }
 
       // Step 5: Save component to database
       console.log('Saving component to database...');
