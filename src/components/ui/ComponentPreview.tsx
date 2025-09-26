@@ -22,12 +22,12 @@ interface ComponentPreviewProps {
   height?: number | string;
 }
 
-export default function ComponentPreview({
+const ComponentPreview = ({
   code,
   theme = 'light',
   props = {},
   height = 400,
-}: ComponentPreviewProps) {
+}: ComponentPreviewProps) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -554,4 +554,6 @@ export default function ComponentPreview({
       )}
     </Paper>
   );
-}
+};
+
+export default ComponentPreview;
