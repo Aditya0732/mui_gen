@@ -176,4 +176,5 @@ export interface ComponentSearchOptions {
   sortOrder?: 'asc' | 'desc';
   limit?: number;
   offset?: number;
+  userId?: string; // Filter by user
 }

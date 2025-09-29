@@ -215,9 +215,15 @@ export class PrismaComponentRepository implements IComponentRepository {
       sortOrder = 'desc',
       limit = 20,
       offset = 0,
+      userId,
     } = searchOptions;
 
     const where: any = {};
+
+    // Filter by user
+    if (userId) {
+      where.ownerId = userId;
+    }
 
     // Text search
     if (query) {

@@ -22,7 +22,6 @@ import {
   Palette as PaletteIcon,
 } from '@mui/icons-material';
 
-import { AppHeader } from '@/components/layout/AppHeader';
 import { ComponentGenerator } from '@/components/features/ComponentGenerator';
 import { ComponentLibrary } from '@/components/features/ComponentLibrary';
 import { FeatureCard } from '@/components/ui/FeatureCard';
@@ -79,8 +78,6 @@ export function HomePage() {
 
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
-      <AppHeader />
-
       {/* Hero Section */}
       <Container maxWidth='lg' sx={{ pt: 8, pb: 4 }}>
         <Fade in timeout={1000}>

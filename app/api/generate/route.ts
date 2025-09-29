@@ -9,6 +9,7 @@ import { CodeValidator } from '@/lib/infrastructure/validation/CodeValidator';
 import { TemplateEngine } from '@/lib/core/templates/TemplateEngine';
 import { API, HttpStatus } from '@/types/api';
 import { GenerationRequest } from '@/types';
+import { getAuthUser } from '@/lib/auth-utils';
 
 // Initialize dependencies
 const prisma = new PrismaClient();
@@ -42,6 +43,22 @@ const applicationService = new ComponentApplicationService(
 
 export async function POST(request: NextRequest) {
   try {
+    // Get authenticated user
+    const user: any = await getAuthUser(request);
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'Authentication required',
+          },
+          timestamp: new Date().toISOString(),
+        },
+        { status: HttpStatus.UNAUTHORIZED }
+      );
+    }
+
     // Check rate limiting
     const clientIP =
       request.headers.get('x-forwarded-for') ||
@@ -88,14 +105,11 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    // Get user ID from session (if authenticated)
-    // const userId = await getUserFromRequest(request);
-
-    // Generate component
-    const result =
-      await applicationService.generateComponent(generationRequest);
-
-    console.log('this is result', result);
+    // Generate component with user context
+    const result = await applicationService.generateComponent(
+      generationRequest,
+      user.id
+    );
 
     // Return response
     const response: API.GenerateResponse = {

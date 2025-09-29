@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   Box,
   Grid,
@@ -26,6 +26,7 @@ import {
   Visibility as PreviewIcon,
   Download as DownloadIcon,
   Save as SaveIcon,
+  Login as LoginIcon,
 } from '@mui/icons-material';
 
 import { CodeEditor } from '@/components/ui/CodeEditor';
@@ -33,6 +34,7 @@ import { CodeEditor } from '@/components/ui/CodeEditor';
 import { ComponentType } from '@/types';
 import { useComponentGeneration } from '@/hooks/useComponentGeneration';
 import ComponentPreview from '../ui/ComponentPreview';
+import { useAuth } from '@/hooks/useAuth';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -55,6 +57,7 @@ function TabPanel({ children, value, index, ...other }: TabPanelProps) {
 }
 
 export function ComponentGenerator() {
+  const { isAuthenticated, isLoading, user } = useAuth();
   const [prompt, setPrompt] = useState('');
   const [selectedType, setSelectedType] = useState<ComponentType | ''>('');
   const [activeTab, setActiveTab] = useState(0);
@@ -115,11 +118,67 @@ export function ComponentGenerator() {
     'Create a dialog for confirming delete actions',
   ];
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <Box
+        sx={{
+          p: 3,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '400px',
+        }}
+      >
+        <CircularProgress size={60} />
+      </Box>
+    );
+  }
+
+  // Show auth required message
+  if (!isAuthenticated) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Paper sx={{ p: 4, textAlign: 'center' }}>
+          <LoginIcon sx={{ fontSize: 64, color: 'primary.main', mb: 2 }} />
+          <Typography variant='h5' gutterBottom>
+            Sign In Required
+          </Typography>
+          <Typography variant='body1' color='text.secondary' sx={{ mb: 3 }}>
+            Please sign in to generate components and save them to your library.
+          </Typography>
+          <Button
+            variant='contained'
+            size='large'
+            startIcon={<LoginIcon />}
+            href='/auth/signin'
+          >
+            Sign In
+          </Button>
+        </Paper>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant='h4' component='h2' gutterBottom>
-        Generate Component
-      </Typography>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mb: 2,
+        }}
+      >
+        <Typography variant='h4' component='h2'>
+          Generate Component
+        </Typography>
+        <Chip
+          label={`Welcome, ${user?.name || 'User'}`}
+          variant='outlined'
+          color='primary'
+        />
+      </Box>
 
       <Grid container spacing={3}>
         {/* Input Section */}

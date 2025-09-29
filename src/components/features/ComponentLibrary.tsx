@@ -34,6 +34,8 @@ import {
 import { API } from '@/types/api';
 import { CodeEditor } from '@/components/ui/CodeEditor';
 import ComponentPreview from '@/components/ui/ComponentPreview';
+import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/navigation';
 
 interface ComponentItem {
   id: string;
@@ -47,6 +49,8 @@ interface ComponentItem {
 }
 
 export function ComponentLibrary() {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const router = useRouter();
   const [components, setComponents] = useState<ComponentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -109,8 +113,24 @@ export function ComponentLibrary() {
   };
 
   useEffect(() => {
+    if (authLoading) {
+      // Don't load while auth is loading
+      return;
+    }
+
+    if (!isAuthenticated) {
+      // Clear components when not authenticated
+      setComponents([]);
+      setTotalPages(1);
+      setTotalComponents(0);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
+    // Load components when authenticated
     loadComponents(searchQuery, page);
-  }, [searchQuery, page]);
+  }, [searchQuery, page, isAuthenticated, authLoading]);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
@@ -238,6 +258,38 @@ export function ComponentLibrary() {
     return (
       <Box sx={{ p: 3 }}>
         <Alert severity='error'>Error loading components: {error}</Alert>
+      </Box>
+    );
+  }
+
+  // Show loading while auth is being determined
+  if (authLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  // Show sign-in message when not authenticated
+  if (!isAuthenticated) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Box sx={{ textAlign: 'center', py: 8 }}>
+          <CodeIcon sx={{ fontSize: 64, color: 'grey.400', mb: 2 }} />
+          <Typography variant='h6' color='grey.600' gutterBottom>
+            Sign in to view your components
+          </Typography>
+          <Typography variant='body2' color='grey.500' sx={{ mb: 3 }}>
+            Your personal component library is available after signing in
+          </Typography>
+          <Button
+            variant='contained'
+            onClick={() => router.push('/auth/signin')}
+          >
+            Sign In
+          </Button>
+        </Box>
       </Box>
     );
   }

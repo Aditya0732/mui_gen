@@ -4,6 +4,7 @@ import { ComponentApplicationService } from '@/lib/application/services/Componen
 import { PrismaComponentRepository } from '@/lib/infrastructure/repositories/PrismaComponentRepository';
 import { API, HttpStatus } from '@/types/api';
 import { ComponentSearchOptions, ComponentType } from '@/types';
+import { getAuthUser } from '@/lib/auth-utils';
 
 const prisma = new PrismaClient();
 const componentRepository = new PrismaComponentRepository(prisma);
@@ -15,6 +16,22 @@ const applicationService = new ComponentApplicationService(
 // GET /api/components - List components with search and pagination
 export async function GET(request: NextRequest) {
   try {
+    // Get authenticated user
+    const user: any = await getAuthUser(request);
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'Authentication required',
+          },
+          timestamp: new Date().toISOString(),
+        },
+        { status: HttpStatus.UNAUTHORIZED }
+      );
+    }
+
     const searchParams = request.nextUrl.searchParams;
 
     const searchOptions = {
@@ -29,9 +46,14 @@ export async function GET(request: NextRequest) {
       sortOrder: (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc',
     };
 
-    const result = await applicationService.searchComponents(
-      searchOptions as ComponentSearchOptions
-    );
+    // Add user filter to search options
+    const userFilteredOptions = {
+      ...searchOptions,
+      userId: user?.id, // Filter by current user
+    } as ComponentSearchOptions;
+
+    const result =
+      await applicationService.searchComponents(userFilteredOptions);
 
     const response: API.LibraryListResponse = {
       items: result.components.map(component => ({

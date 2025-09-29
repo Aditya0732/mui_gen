@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { ThemeRegistry } from '@/components/ThemeRegistry';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import { SessionProvider } from '@/components/providers/SessionProvider';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -29,9 +30,11 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <body className={inter.variable}>
-        <ThemeRegistry>
-          <ErrorBoundary>{children}</ErrorBoundary>
-        </ThemeRegistry>
+        <SessionProvider>
+          <ThemeRegistry>
+            <ErrorBoundary>{children}</ErrorBoundary>
+          </ThemeRegistry>
+        </SessionProvider>
       </body>
     </html>
   );
